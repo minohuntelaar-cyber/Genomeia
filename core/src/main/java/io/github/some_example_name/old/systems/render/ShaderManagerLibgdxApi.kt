@@ -16,10 +16,40 @@ import com.badlogic.gdx.utils.BufferUtils
 import io.github.some_example_name.old.systems.render.RenderSystem.Companion.INITIAL_PARTICLE_CAPACITY
 import io.github.some_example_name.old.systems.render.RenderSystem.Companion.PARTICLE_STRUCT_SIZE
 import java.nio.ByteBuffer
-import kotlin.math.sin
 
 
 var usePostProcess = true
+
+val texturePaths = arrayOf(
+    "leaf.png",         //Leaf(0),
+    "fat.png",          //Fat(1),
+    "bone.png",         //Bone(2),
+    "tail.png",         //Tail(3),
+    "neuron.png",       //Neuron(4),
+    "muscle.png",       //Muscle(5),
+    "sensor.png",       //Sensor(6),
+    "sucker.png",       //Sucker(7),
+    "not_cell.png",     //Mike(8),
+    "excreta.png",      //Excreta(9),
+    "SuctionCup.png",   //SuctionCup(10),
+    "sticky.png",       //Sticky(11),
+    "not_cell.png",     //Pumper(12),
+    "not_cell.png",     //Chameleon(13),
+    "eye.png",          //Eye(14),
+    "not_cell.png",     //Compass(15),
+    "not_cell.png",     //Controller(16),
+    "not_cell.png",     //TouchTrigger(17),
+    "not_cell.png",     //Zygote(18),
+    "not_cell.png",     //Producer(19),
+    "not_cell.png",     //Breakaway(20),
+    "not_cell.png",     //Vascular(21),
+    "not_cell.png",     //PheromoneEmitter(22),
+    "not_cell.png",     //PheromoneSensor(23),
+    "punisher.png",     //Punisher(24)
+    "not_cell.png"
+    // добавляй сюда сколько угодно (до 64+ легко)
+    // порядок = номер ex_cellType
+)
 
 class ShaderManagerLibgdxApi : ShaderManager {
     //TODO вернуть 2 SSBO для интерполяции
@@ -48,36 +78,6 @@ class ShaderManagerLibgdxApi : ShaderManager {
     private val invProjMatrix = Matrix4()
 
     private fun createTextureArray() {
-        val texturePaths = arrayOf(
-            "leaf.png",         //Leaf(0),
-            "fat.png",          //Fat(1),
-            "bone.png",         //Bone(2),
-            "tail.png",         //Tail(3),
-            "neuron.png",       //Neuron(4),
-            "muscle.png",       //Muscle(5),
-            "sensor.png",       //Sensor(6),
-            "sucker.png",       //Sucker(7),
-            "not_cell.png",     //Mike(8),
-            "excreta.png",      //Excreta(9),
-            "SuctionCup.png",   //SuctionCup(10),
-            "sticky.png",       //Sticky(11),
-            "not_cell.png",     //Pumper(12),
-            "not_cell.png",     //Chameleon(13),
-            "eye.png",          //Eye(14),
-            "not_cell.png",     //Compass(15),
-            "not_cell.png",     //Controller(16),
-            "not_cell.png",     //TouchTrigger(17),
-            "not_cell.png",     //Zygote(18),
-            "not_cell.png",     //Producer(19),
-            "not_cell.png",     //Breakaway(20),
-            "not_cell.png",     //Vascular(21),
-            "not_cell.png",     //PheromoneEmitter(22),
-            "not_cell.png",     //PheromoneSensor(23),
-            "punisher.png",     //Punisher(24)
-            "not_cell.png"
-            // добавляй сюда сколько угодно (до 64+ легко)
-            // порядок = номер ex_cellType
-        )
 
         numLayers = texturePaths.size
         if (numLayers == 0) throw IllegalStateException("Нет текстур для TextureArray!")
