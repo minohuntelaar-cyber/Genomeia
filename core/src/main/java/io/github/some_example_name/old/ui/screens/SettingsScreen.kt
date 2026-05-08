@@ -14,6 +14,10 @@ import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisSlider
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.VisTextButton
+import com.kotcrab.vis.ui.widget.VisTextField
+import com.kotcrab.vis.ui.widget.color.ColorPickerAdapter
+import io.github.some_example_name.old.core.color_picker.ColorPicker
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.I18NBundle
 import io.github.some_example_name.old.core.DISimulationContainer.gridHeight
@@ -206,6 +210,113 @@ class SettingsScreen(
         table.add(gravitationSlider).fillX()
         table.row()
 
+        // === Вкладка настроек виньетки и цвета фона ===
+        val vignetteTable = VisTable()
+        vignetteTable.defaults().pad(5f)
+        
+        // Цвет фона
+        val bgColorLabel = VisLabel("Background Color")
+        game.applyCustomFontMedium(bgColorLabel)
+        val bgColorButton = VisTextButton("Choose Color").apply {
+            game.applyCustomFont(this)
+            addListener { e ->
+                if (clicked(e)) {
+                    val colorPicker = ColorPicker(
+                        title = bundle.get("label.choose_color"),
+                        initialColor = GlobalSettings.BACKGROUND_COLOR.cpy(),
+                        listener = object : ColorPickerAdapter() {
+                            override fun finished(color: Color) {
+                                GlobalSettings.BACKGROUND_COLOR.set(color)
+                            }
+                        }
+                    )
+                    colorPicker.show(stage)
+                }
+                false
+            }
+        }
+        vignetteTable.add(bgColorLabel).left()
+        vignetteTable.row()
+        vignetteTable.add(bgColorButton).left()
+        vignetteTable.row()
+        
+        // Радиус виньетки
+        val vignetteRadiusLabel = VisLabel("Vignette Radius: ${GlobalSettings.VIGNETTE_RADIUS}")
+        game.applyCustomFontMedium(vignetteRadiusLabel)
+        val vignetteRadiusSlider = VisSlider(0.5f, 1.5f, 0.01f, false).apply {
+            value = GlobalSettings.VIGNETTE_RADIUS
+            addListener { e ->
+                if (valueChanged(e)) {
+                    GlobalSettings.VIGNETTE_RADIUS = value
+                    vignetteRadiusLabel.setText("Vignette Radius: ${String.format("%.2f", value)}")
+                }
+                false
+            }
+            invalidateHierarchy()
+        }
+        val vignetteRadiusField = VisTextField("${GlobalSettings.VIGNETTE_RADIUS}").apply {
+            setMaxLength(5)
+            textFieldListener = object : VisTextField.TextFieldListener {
+                override fun keyTyped(textField: VisTextField, c: Char) {
+                    if (c == '\n') {
+                        try {
+                            val newValue = text.toFloat().coerceIn(0.5f, 1.5f)
+                            GlobalSettings.VIGNETTE_RADIUS = newValue
+                            vignetteRadiusSlider.value = newValue
+                            vignetteRadiusLabel.setText("Vignette Radius: ${String.format("%.2f", newValue)}")
+                        } catch (e: NumberFormatException) {
+                            // Игнорируем некорректный ввод
+                        }
+                    }
+                }
+            }
+        }
+        vignetteTable.add(vignetteRadiusLabel).left()
+        vignetteTable.row()
+        vignetteTable.add(vignetteRadiusSlider).fillX().width(200f * density)
+        vignetteTable.add(vignetteRadiusField).width(80f * density)
+        vignetteTable.row()
+        
+        // Мягкость виньетки
+        val vignetteSoftnessLabel = VisLabel("Vignette Softness: ${GlobalSettings.VIGNETTE_SOFTNESS}")
+        game.applyCustomFontMedium(vignetteSoftnessLabel)
+        val vignetteSoftnessSlider = VisSlider(0.1f, 1.5f, 0.01f, false).apply {
+            value = GlobalSettings.VIGNETTE_SOFTNESS
+            addListener { e ->
+                if (valueChanged(e)) {
+                    GlobalSettings.VIGNETTE_SOFTNESS = value
+                    vignetteSoftnessLabel.setText("Vignette Softness: ${String.format("%.2f", value)}")
+                }
+                false
+            }
+            invalidateHierarchy()
+        }
+        val vignetteSoftnessField = VisTextField("${GlobalSettings.VIGNETTE_SOFTNESS}").apply {
+            setMaxLength(5)
+            textFieldListener = object : VisTextField.TextFieldListener {
+                override fun keyTyped(textField: VisTextField, c: Char) {
+                    if (c == '\n') {
+                        try {
+                            val newValue = text.toFloat().coerceIn(0.1f, 1.5f)
+                            GlobalSettings.VIGNETTE_SOFTNESS = newValue
+                            vignetteSoftnessSlider.value = newValue
+                            vignetteSoftnessLabel.setText("Vignette Softness: ${String.format("%.2f", newValue)}")
+                        } catch (e: NumberFormatException) {
+                            // Игнорируем некорректный ввод
+                        }
+                    }
+                }
+            }
+        }
+        vignetteTable.add(vignetteSoftnessLabel).left()
+        vignetteTable.row()
+        vignetteTable.add(vignetteSoftnessSlider).fillX().width(200f * density)
+        vignetteTable.add(vignetteSoftnessField).width(80f * density)
+        vignetteTable.row()
+        
+        table.add(vignetteTable).colspan(2).fillX().padTop(20f)
+        table.row()
+
         // === Кнопка назад ===
         val backButton = VisTextButton(bundle.get("button.back")).apply {
             game.applyCustomFont(this)
@@ -261,6 +372,11 @@ object GlobalSettings {
     var GRID_WIDTH = gridWidth
     var GRID_HEIGHT = gridHeight
     var GRAVITATION = 0f
+
+    // Настройки виньетки и цвета фона
+    var VIGNETTE_RADIUS = 0.9f
+    var VIGNETTE_SOFTNESS = 0.8f
+    var BACKGROUND_COLOR = com.badlogic.gdx.graphics.Color(1.0f, 0.969f, 0.855f, 1.0f)
 
 //    var WORLD_SIZE_TYPE = WorldSize.XL
 //    var WORLD_CELL_WIDTH = WORLD_SIZE_TYPE.size

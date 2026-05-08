@@ -407,6 +407,12 @@ class ShaderManagerLibgdxApi : ShaderManager {
             val sobel = if (zoomX10 < 0.16) 0.16f else if (zoomX10 > 0.24) 0.24f else zoomX10
             activeSobelShader.setUniformf("u_zoom", sobel)
             activeSobelShader.setUniformf("u_vignetteEnabled", vignetteEnabled)
+            activeSobelShader.setUniformf("u_vignetteRadius", GlobalSettings.VIGNETTE_RADIUS)
+            activeSobelShader.setUniformf("u_vignetteSoftness", GlobalSettings.VIGNETTE_SOFTNESS)
+            activeSobelShader.setUniformf("u_backgroundColor", 
+                GlobalSettings.BACKGROUND_COLOR.r, 
+                GlobalSettings.BACKGROUND_COLOR.g, 
+                GlobalSettings.BACKGROUND_COLOR.b)
 
 //            println(zoomX10)
 
