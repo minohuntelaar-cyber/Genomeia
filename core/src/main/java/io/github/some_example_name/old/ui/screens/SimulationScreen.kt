@@ -353,38 +353,21 @@ class SimulationScreen(
         val pauseSimToggle = VisTextButton(bundle.get("button.pause"), "toggle")
         pauseSimToggle.isChecked = !simEntity.isPlay
         val restartSimulationButton = VisTextButton(bundle.get("button.restart"))
-//        val chooseColorButton = VisTextButton(bundle.get("button.chooseColor"))
         val drawRaysToggle = VisTextButton(bundle.get("button.drawRays"), "toggle")
         drawRaysToggle.isChecked = usePostProcess
-//        chooseColorButton.addListener(object : ClickListener() {
-//            override fun clicked(event: InputEvent, x: Float, y: Float) {
-//                // Открываем палитру цветов
-//                if (picker == null) {
-//                    picker = ColorPicker(
-//                        title = bundle.get("button.chooseColor"),
-//                        listener = object : ColorPickerAdapter() {
-//                            override fun finished(newColor: Color) {
-//                                simulationSystem.backgroundColor.set(newColor)  // Меняем цвет фона меню при выборе
-//                            }
-//                        },
-//                        game = game,
-//                        colorInit = simulationSystem.backgroundColor
-//                    )
-//                }
-//                picker?.setColor(simulationSystem.backgroundColor)  // Начальный цвет - текущий фон
-//                stage.addActor(picker?.fadeIn())  // Показываем диалог с анимацией
-//            }
-//        })
+        
+        // Кнопка смены шейдера
+        val shaderModeButton = VisTextButton(getShaderModeName(renderSystem.shaderManager.currentShaderMode))
 
         val buttons = if (genomeName == null) {
             listOf(
                 menuButton, putOrganismToggle, selectGenomeButton, speedUpSimToggle,
-                pauseSimToggle, restartSimulationButton/*, chooseColorButton*/, drawRaysToggle
+                pauseSimToggle, restartSimulationButton, shaderModeButton, drawRaysToggle
             )
         } else {
             listOf(
                 menuButton, putOrganismToggle, speedUpSimToggle, pauseSimToggle,
-                restartSimulationButton/*, chooseColorButton*/, drawRaysToggle
+                restartSimulationButton, shaderModeButton, drawRaysToggle
             )
         }
 
@@ -494,5 +477,23 @@ class SimulationScreen(
                 ).show(stage)
             }
         })
+
+        shaderModeButton.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                // Переключаем режим шейдера: 0 -> 1 -> 2 -> 3 -> 0
+                renderSystem.shaderManager.currentShaderMode = (renderSystem.shaderManager.currentShaderMode + 1) % 4
+                shaderModeButton.text = getShaderModeName(renderSystem.shaderManager.currentShaderMode)
+            }
+        })
+    }
+
+    private fun getShaderModeName(mode: Int): String {
+        return when (mode) {
+            0 -> bundle.get("shader.normal") ?: "Normal"
+            1 -> bundle.get("shader.bw") ?: "B&W"
+            2 -> bundle.get("shader.invert") ?: "Invert"
+            3 -> bundle.get("shader.sepia") ?: "Sepia"
+            else -> "Unknown"
+        }
     }
 }
