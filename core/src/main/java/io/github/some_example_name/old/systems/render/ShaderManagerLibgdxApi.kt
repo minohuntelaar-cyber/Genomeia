@@ -15,6 +15,7 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.BufferUtils
 import io.github.some_example_name.old.systems.render.RenderSystem.Companion.INITIAL_PARTICLE_CAPACITY
 import io.github.some_example_name.old.systems.render.RenderSystem.Companion.PARTICLE_STRUCT_SIZE
+import io.github.some_example_name.old.ui.screens.GlobalSettings
 import java.nio.ByteBuffer
 
 
