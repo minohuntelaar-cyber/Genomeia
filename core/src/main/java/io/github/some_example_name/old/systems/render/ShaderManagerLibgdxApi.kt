@@ -58,9 +58,18 @@ class ShaderManagerLibgdxApi : ShaderManager {
     private lateinit var shader: ShaderProgram
     private lateinit var mesh: Mesh
     private lateinit var sobelShader: ShaderProgram
+    private lateinit var sobelShaderBW: ShaderProgram
+    private lateinit var sobelShaderInvert: ShaderProgram
+    private lateinit var sobelShaderSepia: ShaderProgram
 
     private var textureArray: Int = 0
     private var numLayers: Int = 0
+
+    // Текущий режим шейдера: 0 = обычный, 1 = ч/б, 2 = инверсия, 3 = сепия
+    var currentShaderMode: Int = 0
+        set(value) {
+            field = value.coerceIn(0, 3)
+        }
 
     // === НОВОЕ: пост-процессинг (FBO + лёгкий blur-шейдер) ===
     private lateinit var fbo: FrameBuffer
@@ -192,6 +201,29 @@ class ShaderManagerLibgdxApi : ShaderManager {
         sobelShader = ShaderProgram(vertexShader, fragmentShader)
         if (!sobelShader.isCompiled) {
             throw RuntimeException("Sobel shader compilation failed: ${sobelShader.log}")
+        }
+        
+        // Создаём шейдеры для разных режимов
+        val fragmentShaderBW = Gdx.files.internal("shaders/post_process/post_process_multimode.frag").readString()
+        sobelShaderBW = ShaderProgram(vertexShader, fragmentShaderBW).apply {
+            setUniformi("u_shaderMode", 1)
+        }
+        if (!sobelShaderBW.isCompiled) {
+            throw RuntimeException("Sobel BW shader compilation failed: ${sobelShaderBW.log}")
+        }
+        
+        sobelShaderInvert = ShaderProgram(vertexShader, fragmentShaderBW).apply {
+            setUniformi("u_shaderMode", 2)
+        }
+        if (!sobelShaderInvert.isCompiled) {
+            throw RuntimeException("Sobel Invert shader compilation failed: ${sobelShaderInvert.log}")
+        }
+        
+        sobelShaderSepia = ShaderProgram(vertexShader, fragmentShaderBW).apply {
+            setUniformi("u_shaderMode", 3)
+        }
+        if (!sobelShaderSepia.isCompiled) {
+            throw RuntimeException("Sobel Sepia shader compilation failed: ${sobelShaderSepia.log}")
         }
     }
 
@@ -360,13 +392,21 @@ class ShaderManagerLibgdxApi : ShaderManager {
 
 //            invProjMatrix.set(cameraProjection).inv()
 
-            sobelShader.bind()
-            sobelShader.setUniformi("u_texture", 0)
-            sobelShader.setUniformf("u_resolution", fbo.width.toFloat(), fbo.height.toFloat())
+            // Выбираем шейдер в зависимости от режима
+            val activeSobelShader = when (currentShaderMode) {
+                1 -> sobelShaderBW
+                2 -> sobelShaderInvert
+                3 -> sobelShaderSepia
+                else -> sobelShader
+            }
+            
+            activeSobelShader.bind()
+            activeSobelShader.setUniformi("u_texture", 0)
+            activeSobelShader.setUniformf("u_resolution", fbo.width.toFloat(), fbo.height.toFloat())
             val zoomX10 = zoom * 10f
             val sobel = if (zoomX10 < 0.16) 0.16f else if (zoomX10 > 0.24) 0.24f else zoomX10
-            sobelShader.setUniformf("u_zoom", sobel)
-            sobelShader.setUniformf("u_vignetteEnabled", vignetteEnabled)
+            activeSobelShader.setUniformf("u_zoom", sobel)
+            activeSobelShader.setUniformf("u_vignetteEnabled", vignetteEnabled)
 
 //            println(zoomX10)
 
@@ -380,9 +420,9 @@ class ShaderManagerLibgdxApi : ShaderManager {
 //            Gdx.gl.glActiveTexture(GL20.GL_TEXTURE1)   // ← для lines
 //            linesTexture.bind()
 
-            mesh.bind(sobelShader)
+            mesh.bind(activeSobelShader)
             Gdx.gl.glDrawArrays(GL20.GL_TRIANGLE_STRIP, 0, 4)
-            mesh.unbind(sobelShader)
+            mesh.unbind(activeSobelShader)
 //            if (blurAmount > 0.001f) {
                 blurFbo.end()
 //            }
@@ -426,6 +466,9 @@ class ShaderManagerLibgdxApi : ShaderManager {
     override fun dispose() {
         shader.dispose()
         sobelShader.dispose()
+        sobelShaderBW.dispose()
+        sobelShaderInvert.dispose()
+        sobelShaderSepia.dispose()
         mesh.dispose()
 
         if (::fbo.isInitialized) fbo.dispose()
